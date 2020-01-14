@@ -1,0 +1,21 @@
+sudo: required
+language: bash
+services:
+  - docker
+
+before_script:
+  - docker -v
+
+script:
+  - docker build -t keboola/onedrive-writer .
+  - docker run keboola/onedrive-writer /bin/bash -c "composer install --no-interaction --no-progress && composer ci"
+
+after_success:
+  - docker images
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ./deploy.sh
+  on:
+    tags: true
