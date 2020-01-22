@@ -45,7 +45,7 @@ class Component extends BaseComponent
 
         $fileParameters = $this->getConfig()->getParameters();
 
-        $writer->writeDir(self::getDataDir() . '/out/files', isset($fileParameters['path']) ? $fileParameters['path'] : '');
+        $writer->writeDir(self::getDataDir() . '/in/files', isset($fileParameters['path']) ? $fileParameters['path'] : '');
     }
 
 }
