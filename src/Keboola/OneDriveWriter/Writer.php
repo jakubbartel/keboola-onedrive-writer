@@ -3,6 +3,7 @@
 namespace Keboola\OneDriveWriter;
 
 use League\Flysystem;
+use Symfony\Component\Finder\Finder;
 
 class Writer
 {
@@ -29,6 +30,8 @@ class Writer
      * @param string $oAuthAppSecret
      * @param string $oAuthData serialized data returned by oAuth API
      * @param Flysystem\Filesystem $filesystem
+     * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
+     * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
      */
     public function __construct(
         string $oAuthAppId,
@@ -46,6 +49,8 @@ class Writer
     /**
      * @param string $oAuthData
      * @return Writer
+     * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
+     * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
      */
     private function initOAuthProviderAccessToken(string $oAuthData) : self
     {
@@ -91,19 +96,45 @@ class Writer
     }
 
     /**
-     * @param string $path path to directory on OneDrive or SharePoint
-     * @return MicrosoftGraphApi\File
+     * Look up all xls(x) and return their path with desired output file.
+     *
+     * @param string $dirPath
+     * @return array
+     */
+    private function getFilesToProcess(string $dirPath): array {
+        $filePaths = [];
+
+        $finder = new Finder();
+        $finder->files()->in($dirPath);
+
+        foreach($finder as $file) {
+            $filePaths[] = $file->getRelativePathname();
+        }
+
+        return $filePaths;
+    }
+
+    /**
+     * @param string $dirPath
+     * @param string $fileRelPathname
+     * @param string $driveDir
+     * @return Writer
      * @throws Exception\UserException
      * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
      * @throws \Exception
      */
-    public function writeFile(string $path) : MicrosoftGraphApi\File
+    public function writeFile(string $dirPath, string $fileRelPathname, string $driveDir) : self
     {
         $files = new MicrosoftGraphApi\OneDrive($this->api);
 
+        $filePathname = sprintf('%s/%s', $dirPath, $fileRelPathname);
+
+        $driveFilePathname = strlen($driveDir) > 0
+            ? sprintf("%s/%s", trim($driveDir, '/'), $fileRelPathname)
+            : $fileRelPathname;
+
         try {
-            $fileMetadata = $files->readFileMetadataByLink($link);
-            $file = $files->readFile($fileMetadata);
+            $files->writeFile($filePathname, $driveFilePathname);
         } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
             throw new Exception\UserException('Microsoft OAuth API token refresh failed, please reset authorization for the writer configuration');
         } catch(MicrosoftGraphApi\Exception\FileCannotBeLoaded | MicrosoftGraphApi\Exception\InvalidSharingUrl $e) {
@@ -114,9 +145,22 @@ class Writer
             throw new \Exception(sprintf("Access token not initialized: %s", $e->getMessage()));
         }
 
-        $this->writeFileToOutput($file, $fileMetadata->getOneDriveName());
+        return $this;
+    }
 
-        return $file;
+    /**
+     * @param string $dirPath
+     * @param string $driveDir
+     * @return Writer
+     * @throws Exception\UserException
+     * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
+     */
+    public function writeDir(string $dirPath, string $driveDir) : self {
+        foreach($this->getFilesToProcess($dirPath) as $fileRelPathname) {
+            $this->writeFile($dirPath, $fileRelPathname, $driveDir);
+        }
+
+        return $this;
     }
 
 }

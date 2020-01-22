@@ -8,7 +8,7 @@ Writes data to OneDrive/SharePoint
 2. Click "New registration" button, fill in name of the new Application. Application id will be generated
 3. Setup Authentication: go to section *Authentication*. Redirect URIs : fill in *Web* *Redirect URI*. Fill in Logout URL. Implicit grant check *Access tokens* and *ID tokens*. Check *Accounts in any organizational directory*.
 4. Generate application secret in section *Certificates & secrets* button "New client secret" with "Never" expiration.
-5. Add *API permissions* that oAuth can ask for: `Files.Read`, `Files.Read.All`, `Files.Read.Selected`, `Files.ReadWrite`, `Files.ReadWrite.All`, `Files.ReadWrite.Selected`, `Sites.Read.All`, `Sites.ReadWrite.All`
+5. Add *API permissions*: Microsoft Graph API - Delegated permissions that oAuth can ask for: `Files.ReadWrite.All`, `Sites.ReadWrite.All`
 6. Fill other fields at your will
 7. Hit "Save"
 

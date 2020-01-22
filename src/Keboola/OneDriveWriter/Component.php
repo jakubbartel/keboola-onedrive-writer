@@ -18,6 +18,8 @@ class Component extends BaseComponent
 
     /**
      * @return Writer
+     * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
+     * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
      */
     public function initWriter(): Writer
     {
@@ -43,7 +45,7 @@ class Component extends BaseComponent
 
         $fileParameters = $this->getConfig()->getParameters();
 
-        $writer->writeFile($fileParameters['path']);
+        $writer->writeDir(self::getDataDir() . '/out/files', isset($fileParameters['path']) ? $fileParameters['path'] : '');
     }
 
 }

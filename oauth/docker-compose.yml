@@ -1,0 +1,31 @@
+version: "3"
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "10200:443"
+    volumes:
+      - ./index.php:/app/oauth/index.php
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certs:/etc/nginx/certs
+    links:
+      - php
+    depends_on:
+      - certificates
+    restart: unless-stopped
+
+  php:
+    image: php:7.1-fpm
+    env_file:
+      - .env
+    volumes:
+      - ../:/app
+    restart: unless-stopped
+
+  certificates:
+    image: centurylink/openssl
+    volumes:
+      - ./certs:/certs
+    environment:
+      - COMMON_NAME=server
+      - KEY_NAME=server

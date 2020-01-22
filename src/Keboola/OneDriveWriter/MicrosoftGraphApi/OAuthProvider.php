@@ -32,12 +32,22 @@ class OAuthProvider
     /**
      * @const string
      */
-    private const SCOPE_FILES_READ = 'Files.Read';
+    private const SCOPE_FILES_READ_ALL = 'Files.Read.All';
+
+    /**
+     * @const string
+     */
+    private const SCOPE_FILES_READWRITE_ALL = 'Files.ReadWrite.All';
 
     /**
      * @const string
      */
     private const SCOPE_SITES_READ_ALL = 'Sites.Read.All';
+
+    /**
+     * @const string
+     */
+    private const SCOPE_SITES_READWRITE_ALL = 'Sites.ReadWrite.All';
 
     /**
      * @var OAuth2\Client\Provider\GenericProvider
@@ -70,10 +80,10 @@ class OAuthProvider
             'urlResourceOwnerDetails' => '',
             'scopes' => implode(' ', [
                 self::SCOPE_OFFLINE_ACCESS,
-                self::SCOPE_FILES_READ,
-                self::SCOPE_SITES_READ_ALL,
-                //'Files.ReadWrite',
-                //'Files.ReadWrite.All',
+                //self::SCOPE_FILES_READ_ALL,
+                //self::SCOPE_SITES_READ_ALL,
+                self::SCOPE_FILES_READWRITE_ALL,
+                self::SCOPE_SITES_READWRITE_ALL,
             ]),
         ]);
     }

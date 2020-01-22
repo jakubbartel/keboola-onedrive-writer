@@ -87,16 +87,12 @@ class OneDrive
         return File::initByStream($response->getBody());
     }
 
-    public function writeFile(string $filePath) : self {
-        $filePath = 'testfile.txt';
-
-        $driveFilePath = 'testfile.txt';
-
+    public function writeFile(string $filePathname, string $driveFilePathname) : self {
         try {
             $this->api->getApi()
-                ->createRequest('POST', '/me/drive/root/children/'.basename($driveFilePath).'/createUploadSession')
+                ->createRequest('PUT', '/me/drive/root:/'.$driveFilePathname.':/content')
                 ->setReturnType(DriveItem::class)
-                ->upload($filePath);
+                ->upload($filePathname);
         } catch(Exception\AccessTokenNotInitialized $e) {
         } catch(Exception\GenerateAccessTokenFailure $e) {
         } catch(GraphException $e) {
