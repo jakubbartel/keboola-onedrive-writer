@@ -1,6 +1,8 @@
 # Keboola OneDrive Writer
 
-Writes data to OneDrive/SharePoint
+Writes all files in `/data/in/files` to user's OneDrive/SharePoint. Existing files are overwritten.
+
+How to use and configure the writer in KBC? [User documentation](docs/README.md)
 
 ## Microsoft Graph API Application
 
@@ -14,12 +16,12 @@ Writes data to OneDrive/SharePoint
 
 ## OAuth
 
-Use *Application Id*, *Secret* and *redict url* for OAuth with following links:
+Use *Application Id*, *Secret* and *redirect url* for OAuth with following links:
 
 - oauth url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?state=__state__&scope=offline_access%20Files.Read%20Files.ReadWrite%20Sites.Read.All%20Sites.ReadWrite.All&response_type=code&approval_prompt=auto&redirect_uri=__redirect_uri__&client_id=__client_id__`
 - token url: `https://login.microsoftonline.com/common/oauth2/v2.0/token`
 
-## OAuth testing
+## Local OAuth testing
 
 Directory `/oauth` contains docker-compose file to run local OAuth testing environment - printing all OAuth data
 returned from the server in browser.
