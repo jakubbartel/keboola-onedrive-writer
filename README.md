@@ -1,5 +1,7 @@
 # Keboola OneDrive Writer
 
+[![Build Status](https://travis-ci.org/jakubbartel/keboola-onedrive-writer.svg?branch=master)](https://travis-ci.org/jakubbartel/keboola-onedrive-writer)
+
 Writes all files in `/data/in/files` to user's OneDrive/SharePoint. Existing files are overwritten.
 
 How to use and configure the writer in KBC? [User documentation](docs/README.md)
