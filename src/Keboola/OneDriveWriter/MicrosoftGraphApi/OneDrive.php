@@ -101,10 +101,11 @@ class OneDrive
         }
         */
 
+        // "You can upload the entire file, or split the file into multiple byte ranges, as long as the maximum bytes in any given request is less than 60 MiB."
         // "If your app splits a file into multiple byte ranges, the size of each byte range MUST be a multiple of 320 KiB"
         // https://docs.microsoft.com/cs-cz/graph/api/driveitem-createuploadsession?view=graph-rest-1.0#upload-bytes-to-the-upload-session
         $fileSize = filesize($filePathname);
-        $uploadFragSize = 320 * 1024;
+        $uploadFragSize = 320 * 1024 * 10; // 3.2 MiB
 
         try {
             $uploadSession = $this->api->getApi()
