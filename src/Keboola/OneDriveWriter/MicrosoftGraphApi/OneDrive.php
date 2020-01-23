@@ -87,7 +87,8 @@ class OneDrive
         return File::initByStream($response->getBody());
     }
 
-    public function writeFile(string $filePathname, string $driveFilePathname) : self {
+    public function writeFile(string $filePathname, string $driveFilePathname) : self
+    {
         try {
             $this->api->getApi()
                 ->createRequest('PUT', '/me/drive/root:/'.$driveFilePathname.':/content')

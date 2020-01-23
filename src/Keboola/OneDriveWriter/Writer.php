@@ -101,7 +101,8 @@ class Writer
      * @param string $dirPath
      * @return array
      */
-    private function getFilesToProcess(string $dirPath): array {
+    private function getFilesToProcess(string $dirPath): array
+    {
         $filePaths = [];
 
         $finder = new Finder();
@@ -157,7 +158,8 @@ class Writer
      * @throws Exception\UserException
      * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
      */
-    public function writeDir(string $dirPath, string $driveDir) : self {
+    public function writeDir(string $dirPath, string $driveDir) : self
+    {
         $files = $this->getFilesToProcess($dirPath);
 
         printf("Found %d files to process\n", count($files));
