@@ -89,22 +89,11 @@ class OneDrive
 
     public function writeFile(string $filePathname, string $driveFilePathname) : self
     {
-        /*
-        try {
-            $this->api->getApi()
-                ->createRequest('PUT', '/me/drive/root:/'.$driveFilePathname.':/content')
-                ->setReturnType(Model\DriveItem::class)
-                ->upload($filePathname);
-        } catch(Exception\AccessTokenNotInitialized $e) {
-        } catch(Exception\GenerateAccessTokenFailure $e) {
-        } catch(GraphException $e) {
-        }
-        */
+        $fileSize = filesize($filePathname);
 
         // "You can upload the entire file, or split the file into multiple byte ranges, as long as the maximum bytes in any given request is less than 60 MiB."
         // "If your app splits a file into multiple byte ranges, the size of each byte range MUST be a multiple of 320 KiB"
         // https://docs.microsoft.com/cs-cz/graph/api/driveitem-createuploadsession?view=graph-rest-1.0#upload-bytes-to-the-upload-session
-        $fileSize = filesize($filePathname);
         $uploadFragSize = 320 * 1024 * 10; // 3.2 MiB
 
         try {
@@ -118,47 +107,30 @@ class OneDrive
 
             $uploadUrl = $uploadSession->getUploadUrl();
 
-            $numFragments = ceil($fileSize / $uploadFragSize);
-            $bytesRemaining = $fileSize;
+            $file = fopen($filePathname, 'r');
+            if($file === false) {
+                throw new Exception\FileCannotBeLoaded('Unable to open the file stream');
+            }
 
-            $i = 0;
-            while($i < $numFragments) {
-                $chunkSize = $numBytes = $uploadFragSize;
-                $start = $i * $uploadFragSize;
-                $end = $i * $uploadFragSize + $chunkSize - 1;
-                $offset = $i * $uploadFragSize;
-                if($bytesRemaining < $chunkSize) {
-                    $chunkSize = $numBytes = $bytesRemaining;
-                    $end = $fileSize - 1;
-                }
+            while(!feof($file)) {
+                $start = ftell($file);
+                $data = fread($file, $uploadFragSize);
+                $end = ftell($file);
 
-                if($stream = fopen($filePathname, 'r')) {
-                    $data = stream_get_contents($stream, $chunkSize, $offset);
-                    fclose($stream);
-                }
-
-                $contentRange = "bytes " . $start . "-" . $end . "/" . $fileSize;
-
-                $headers = [
-                    "Content-Length"=> $numBytes,
-                    "Content-Range"=> $contentRange
-                ];
-
-                $uploadByte = $this->api->getApi()
+                $this->api->getApi()
                     ->createRequest("PUT", $uploadUrl)
-                    ->addHeaders($headers)
+                    ->addHeaders([
+                        "Content-Length" => $end - $start,
+                        "Content-Range" => sprintf("bytes %d-%d/%d", $start, $end-1, $fileSize),
+                    ])
                     ->attachBody($data)
                     ->setReturnType(Model\UploadSession::class)
                     ->setTimeout("1000")
                     ->execute();
-
-                $bytesRemaining = $bytesRemaining - $chunkSize;
-
-                $i++;
             }
-
         } catch(Exception\AccessTokenNotInitialized $e) {
         } catch(Exception\GenerateAccessTokenFailure $e) {
+        } catch(Exception\FileCannotBeLoaded $e) {
         } catch(GraphException $e) {
         }
 
