@@ -145,6 +145,8 @@ class Writer
             throw new \Exception(sprintf("Access token not initialized: %s", $e->getMessage()));
         }
 
+        printf("File \"%s\" written as \"%s\"\n", $fileRelPathname, $driveFilePathname);
+
         return $this;
     }
 
@@ -156,7 +158,11 @@ class Writer
      * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
      */
     public function writeDir(string $dirPath, string $driveDir) : self {
-        foreach($this->getFilesToProcess($dirPath) as $fileRelPathname) {
+        $files = $this->getFilesToProcess($dirPath);
+
+        printf("Found %d files to process\n", count($files));
+
+        foreach($files as $fileRelPathname) {
             $this->writeFile($dirPath, $fileRelPathname, $driveDir);
         }
 
