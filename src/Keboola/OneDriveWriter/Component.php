@@ -51,7 +51,7 @@ class Component extends BaseComponent
     {
         $fileParameters = $this->getConfig()->getParameters();
 
-        $sharePointWebUrl = $fileParameters['sharePointWebUrl'];
+        $sharePointWebUrl = isset($fileParameters['sharePointWebUrl']) ? $fileParameters['sharePointWebUrl'] : '';
 
         $writer = $this->initWriter($sharePointWebUrl);
 
