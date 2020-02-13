@@ -17,11 +17,18 @@ class Component extends BaseComponent
     }
 
     /**
+     * @param string $sharePointWebUrl
      * @return Writer
      * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
+     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
+     * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
+     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
+     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
+     * @throws MicrosoftGraphApi\Exception\MissingSiteId
      */
-    public function initWriter(): Writer
+    public function initWriter(string $sharePointWebUrl): Writer
     {
         $adapter = new FlySystem\Adapter\Local(sprintf('%s%s', $this->getDataDir(), '/in/files'));
         $fileSystem = new Flysystem\Filesystem($adapter);
@@ -30,7 +37,8 @@ class Component extends BaseComponent
             $this->getConfig()->getOAuthApiAppKey(),
             $this->getConfig()->getOAuthApiAppSecret(),
             $this->getConfig()->getOAuthApiData(),
-            $fileSystem
+            $fileSystem,
+            $sharePointWebUrl ? $sharePointWebUrl : null
         );
     }
 
@@ -41,9 +49,11 @@ class Component extends BaseComponent
      */
     public function run() : void
     {
-        $writer = $this->initWriter();
-
         $fileParameters = $this->getConfig()->getParameters();
+
+        $sharePointWebUrl = $fileParameters['sharePointWebUrl'];
+
+        $writer = $this->initWriter($sharePointWebUrl);
 
         $writer->writeDir(self::getDataDir() . '/in/files', isset($fileParameters['path']) ? $fileParameters['path'] : '');
     }

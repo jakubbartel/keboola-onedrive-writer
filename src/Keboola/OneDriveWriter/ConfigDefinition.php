@@ -19,6 +19,8 @@ class ConfigDefinition extends BaseConfigDefinition
         $parametersNode
             ->isRequired()
             ->children()
+                ->scalarNode('sharePointWebUrl')
+                ->end()
                 ->scalarNode('path')
                 ->end()
             ->end();

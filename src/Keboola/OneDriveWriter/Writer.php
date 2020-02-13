@@ -24,26 +24,43 @@ class Writer
     private $filesystem;
 
     /**
+     * @var string
+     */
+    private $sharePointSiteId;
+
+    /**
      * Writer constructor.
      *
      * @param string $oAuthAppId
      * @param string $oAuthAppSecret
      * @param string $oAuthData serialized data returned by oAuth API
      * @param Flysystem\Filesystem $filesystem
+     * @param string|null $sharePointWebUrl
      * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
+     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
+     * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
+     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
+     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
+     * @throws MicrosoftGraphApi\Exception\MissingSiteId
      */
     public function __construct(
         string $oAuthAppId,
         string $oAuthAppSecret,
         string $oAuthData,
-        Flysystem\Filesystem $filesystem
+        Flysystem\Filesystem $filesystem,
+        string $sharePointWebUrl = null
     ) {
         $this->filesystem = $filesystem;
 
         $this->initOAuthProvider($oAuthAppId, $oAuthAppSecret);
         $this->initOAuthProviderAccessToken($oAuthData);
         $this->initApi();
+
+        if($sharePointWebUrl !== null) {
+            $this->initSharePointId($sharePointWebUrl);
+        }
     }
 
     /**
@@ -79,6 +96,25 @@ class Writer
     private function initApi() : self
     {
         $this->api = new MicrosoftGraphApi\Api($this->provider);
+
+        return $this;
+    }
+
+    /**
+     * @param string $sharePointWebUrl
+     * @return Writer
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
+     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
+     * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
+     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
+     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
+     * @throws MicrosoftGraphApi\Exception\MissingSiteId
+     */
+    private function initSharePointId(string $sharePointWebUrl) : self
+    {
+        $oneDrive = new MicrosoftGraphApi\OneDrive($this->api);
+
+        $this->sharePointSiteId = $oneDrive->readSiteIdByWebUrl($sharePointWebUrl);
 
         return $this;
     }
@@ -135,7 +171,7 @@ class Writer
             : $fileRelPathname;
 
         try {
-            $files->writeFile($filePathname, $driveFilePathname);
+            $files->writeFile($filePathname, $driveFilePathname, $this->sharePointSiteId);
         } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
             throw new Exception\UserException('Microsoft OAuth API token refresh failed, please reset authorization for the writer configuration');
         } catch(MicrosoftGraphApi\Exception\FileCannotBeLoaded | MicrosoftGraphApi\Exception\InvalidSharingUrl $e) {
