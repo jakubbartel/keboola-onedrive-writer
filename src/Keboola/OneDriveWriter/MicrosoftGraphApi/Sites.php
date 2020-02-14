@@ -36,7 +36,7 @@ class Sites
      */
     public function getSiteIdBySharePointWebUrl(string $sharePointWebUrl) : string
     {
-        $components = parse_url($sharePointWebUrl);
+        $components = self::parseSharePointWebUrlComponents($sharePointWebUrl);
 
         if($components['host'] === '' || $components['path'] === '') {
             throw new Exception\InvalidSharePointWebUrl();
@@ -77,6 +77,22 @@ class Sites
         }
 
         return $properties['id'];
+    }
+
+    /**
+     * @param string $sharePointWebUrl
+     * @return array
+     */
+    private static function parseSharePointWebUrlComponents(string $sharePointWebUrl) : array {
+        if(strpos($sharePointWebUrl, 'https://') === 0) {
+            // ok
+        } else if(strpos($sharePointWebUrl, 'http://') === 0) {
+            $sharePointWebUrl = substr_replace($sharePointWebUrl, 'https://', 0, strlen('http://'));
+        } else {
+            $sharePointWebUrl = 'https://'.$sharePointWebUrl;
+        }
+
+        return parse_url($sharePointWebUrl);
     }
 
 }
