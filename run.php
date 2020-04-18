@@ -2,12 +2,10 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use Keboola\Component\UserException;
-
 try {
-    $component = new \Keboola\OneDriveWriter\Component();
+    $component = new Keboola\OneDriveWriter\Component();
     $component->run();
-} catch(UserException $e) {
+} catch(Keboola\Component\UserException $e) {
     error_log($e->getMessage());
 
     exit(1);

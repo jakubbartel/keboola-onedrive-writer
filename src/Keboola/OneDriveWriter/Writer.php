@@ -145,6 +145,7 @@ class Writer
      * @param string $driveDir
      * @return Writer
      * @throws Exception\UserException
+     * @throws Exception\ApplicationException
      * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
      * @throws \Exception
      */
@@ -161,13 +162,13 @@ class Writer
         try {
             $files->writeFile($filePathname, $driveFilePathname, $this->sharePointSiteId);
         } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
-            throw new Exception\UserException('Microsoft OAuth API token refresh failed, please reset authorization for the writer configuration');
+            throw new Exception\UserException('Microsoft OAuth API token refresh failed, please reset Authorization in the writer\'s configuration');
+        } catch(MicrosoftGraphApi\Exception\AccessTokenNotInitialized $e) {
+            throw new Exception\ApplicationException(sprintf("Access token not initialized: %s", $e->getMessage()));
         } catch(MicrosoftGraphApi\Exception\FileCannotBeLoaded | MicrosoftGraphApi\Exception\InvalidSharingUrl $e) {
             throw new Exception\UserException($e->getMessage());
         } catch(MicrosoftGraphApi\Exception\GatewayTimeout $e) {
             throw new Exception\UserException('Microsoft API timeout, rerun to try again');
-        } catch(MicrosoftGraphApi\Exception\AccessTokenNotInitialized $e) {
-            throw new \Exception(sprintf("Access token not initialized: %s", $e->getMessage()));
         }
 
         printf("File \"%s\" written as \"%s\"\n", $fileRelPathname, $driveFilePathname);
@@ -180,6 +181,7 @@ class Writer
      * @param string $driveDir
      * @return Writer
      * @throws Exception\UserException
+     * @throws Exception\ApplicationException
      * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
      */
     public function writeDir(string $dirPath, string $driveDir) : self
