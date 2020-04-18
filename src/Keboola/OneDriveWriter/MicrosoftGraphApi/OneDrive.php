@@ -26,22 +26,6 @@ class OneDrive
     }
 
     /**
-     * @param string $link
-     * @return FileMetadata
-     * @throws Exception\AccessTokenNotInitialized
-     * @throws Exception\GenerateAccessTokenFailure
-     * @throws Exception\InvalidSharingUrl
-     * @throws Exception\MissingDownloadUrl
-     * @throws Exception\GatewayTimeout
-     */
-    public function readFileMetadataByLink(string $link) : FileMetadata
-    {
-        $shares = new Shares($this->api);
-
-        return $shares->getSharesDriveItemMetadata($link);
-    }
-
-    /**
      * @param string $sharePointWebUrl
      * @return string
      * @throws Exception\AccessTokenNotInitialized
@@ -56,52 +40,6 @@ class OneDrive
         $sites = new Sites($this->api);
 
         return $sites->getSiteIdBySharePointWebUrl($sharePointWebUrl);
-    }
-
-    /**
-     * @param FileMetadata $oneDriveItemMetadata
-     * @return File
-     * @throws Exception\FileCannotBeLoaded
-     */
-    public function readFile(FileMetadata $oneDriveItemMetadata) : File
-    {
-        $client = new Client();
-
-        try {
-            $response = $client->get($oneDriveItemMetadata->getDownloadUrl());
-        } catch(RequestException $e) {
-            $response = $e->getResponse();
-
-            if($response !== null) {
-                throw new Exception\FileCannotBeLoaded(
-                    sprintf(
-                        'File with id "%s" cannot not be downloaded from OneDrive, returned status code %d on download url',
-                        $oneDriveItemMetadata->getOneDriveId(),
-                        $response->getStatusCode()
-                    )
-                );
-            } else {
-                throw new Exception\FileCannotBeLoaded(
-                    sprintf(
-                        'File with id "%s" cannot not be downloaded from OneDrive, error when performing GET request %s',
-                        $oneDriveItemMetadata->getOneDriveId(),
-                        $e->getMessage()
-                    )
-                );
-            }
-        }
-
-        if($response->getStatusCode() !== 200) {
-            throw new Exception\FileCannotBeLoaded(
-                sprintf(
-                    'File with id "%s" cannot not be downloaded from OneDrive, returned status code %d on download url',
-                    $oneDriveItemMetadata->getOneDriveId(),
-                    $response->getStatusCode()
-                )
-            );
-        }
-
-        return File::initByStream($response->getBody());
     }
 
     /**

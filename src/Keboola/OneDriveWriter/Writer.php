@@ -120,18 +120,6 @@ class Writer
     }
 
     /**
-     * @param MicrosoftGraphApi\File $file
-     * @param string $filePathname
-     * @return Writer
-     */
-    private function writeFileToOutput(MicrosoftGraphApi\File $file, string $filePathname) : self
-    {
-        $file->saveToFile($this->filesystem, $filePathname);
-
-        return $this;
-    }
-
-    /**
      * Look up all xls(x) and return their path with desired output file.
      *
      * @param string $dirPath
