@@ -50,9 +50,11 @@ class Sites
                 ->setTimeout("15000")
                 ->execute();
         } catch(GuzzleHttp\Exception\ClientException $e) {
-            throw new Exception\ClientException("Get SharePoint Site request", 0, $e);
+            throw new Exception\ClientException(
+                sprintf("SharePoint Site request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
         } catch(GuzzleHttp\Exception\ServerException | GraphException $e) {
-            throw new Exception\ServerException("Get SharePoint Site request", 0, $e);
+            throw new Exception\ServerException(
+                sprintf("SharePoint Site request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
         }
 
         return Sites::parseSiteId($sharePointSite);

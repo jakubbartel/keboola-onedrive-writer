@@ -2,7 +2,7 @@
 
 namespace Keboola\OneDriveWriter\MicrosoftGraphApi\Exception;
 
-class InvalidSharingUrl extends MicrosoftGraphApi
+class ServerException extends MicrosoftGraphApi
 {
 
 }

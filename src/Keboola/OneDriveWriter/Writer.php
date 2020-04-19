@@ -116,13 +116,11 @@ class Writer
             throw new Exception\UserException(sprintf('SharePoint Site url "%s" is invalid', $sharePointWebUrl));
         } catch(MicrosoftGraphApi\Exception\ClientException $e) {
             throw new Exception\UserException(
-                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s: %s',
-                    $sharePointWebUrl, $e->getMessage(), $e->getPrevious()->getMessage())
+                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s', $sharePointWebUrl, $e->getMessage())
             );
         } catch(MicrosoftGraphApi\Exception\ServerException $e) {
             throw new Exception\ApplicationException(
-                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s: %s',
-                    $sharePointWebUrl, $e->getMessage(), $e->getPrevious()->getMessage())
+                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s', $sharePointWebUrl, $e->getMessage())
             );
         } catch(MicrosoftGraphApi\Exception\MissingSiteId $e) {
             throw new Exception\ApplicationException(
@@ -175,13 +173,11 @@ class Writer
             $files->writeFile($filePathname, $driveFilePathname, $this->sharePointSiteId);
         } catch(MicrosoftGraphApi\Exception\ClientException $e) {
             throw new Exception\UserException(
-                sprintf('File "%s" upload error: %s: %s',
-                    $filePathname, $e->getMessage(), $e->getPrevious()->getMessage())
+                sprintf('File "%s" upload error: %s', $filePathname, $e->getMessage())
             );
         } catch(MicrosoftGraphApi\Exception\ServerException $e) {
             throw new Exception\ApplicationException(
-                sprintf('File "%s" upload error: %s: %s',
-                    $filePathname, $e->getMessage(), $e->getPrevious()->getMessage())
+                sprintf('File "%s" upload error: %s', $filePathname, $e->getMessage())
             );
         } catch(MicrosoftGraphApi\Exception\ReadFile $e) {
             throw new Exception\ApplicationException(sprintf('Write file: %s', $e->getMessage()));
