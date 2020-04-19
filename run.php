@@ -5,10 +5,10 @@ require __DIR__ . '/vendor/autoload.php';
 try {
     $component = new Keboola\OneDriveWriter\Component();
     $component->run();
-} catch(Keboola\Component\UserException $e) {
-    error_log($e->getMessage());
-
-    exit(1);
+//} catch(Keboola\Component\UserException $e) {
+//    error_log($e->getMessage());
+//
+//    exit(1);
 } catch(Throwable $e) {
     error_log(get_class($e) . ': ' . $e->getMessage());
     error_log('File: ' . $e->getFile());
