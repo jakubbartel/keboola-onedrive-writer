@@ -52,9 +52,12 @@ class Sites
         } catch(GuzzleHttp\Exception\ClientException $e) {
             throw new Exception\ClientException(
                 sprintf("SharePoint Site request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
-        } catch(GuzzleHttp\Exception\ServerException | GraphException $e) {
+        } catch(GuzzleHttp\Exception\ServerException $e) {
             throw new Exception\ServerException(
                 sprintf("SharePoint Site request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
+        } catch(GraphException $e) {
+            throw new Exception\ServerException(
+                sprintf("SharePoint Site request error: %s", $e), 0, $e);
         }
 
         return Sites::parseSiteId($sharePointSite);
@@ -82,11 +85,9 @@ class Sites
      */
     private static function parseSharePointWebUrlComponents(string $sharePointWebUrl) : array
     {
-        if(strpos($sharePointWebUrl, 'https://') === 0) {
-            // ok
-        } else if(strpos($sharePointWebUrl, 'http://') === 0) {
+        if(strpos($sharePointWebUrl, 'http://') === 0) {
             $sharePointWebUrl = substr_replace($sharePointWebUrl, 'https://', 0, strlen('http://'));
-        } else {
+        } else if(strpos($sharePointWebUrl, 'https://') !== 0) {
             $sharePointWebUrl = 'https://'.$sharePointWebUrl;
         }
 

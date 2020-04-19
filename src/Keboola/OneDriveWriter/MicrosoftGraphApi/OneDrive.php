@@ -73,9 +73,12 @@ class OneDrive
         } catch(GuzzleHttp\Exception\ClientException $e) {
             throw new Exception\ClientException(
                 sprintf("Create upload session request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
-        } catch(GuzzleHttp\Exception\ServerException | GraphException $e) {
+        } catch(GuzzleHttp\Exception\ServerException $e) {
             throw new Exception\ServerException(
                 sprintf("Create upload session request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
+        } catch(GraphException $e) {
+            throw new Exception\ServerException(
+                sprintf("Create upload session request error: %s", $e), 0, $e);
         }
 
         $fileSize = filesize($filePathname);
@@ -111,9 +114,12 @@ class OneDrive
             } catch(GuzzleHttp\Exception\ClientException $e) {
                 throw new Exception\ClientException(
                     sprintf("Upload data request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
-            } catch(GuzzleHttp\Exception\ServerException | GraphException $e) {
+            } catch(GuzzleHttp\Exception\ServerException $e) {
                 throw new Exception\ServerException(
                     sprintf("Upload data request error: %s", Utils::parseGraphApiErrorMessage($e)), 0, $e);
+            } catch(GraphException $e) {
+                throw new Exception\ServerException(
+                    sprintf("Upload data request error: %s", $e), 0, $e);
             }
         }
 

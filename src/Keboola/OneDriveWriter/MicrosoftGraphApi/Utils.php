@@ -8,7 +8,13 @@ class Utils {
 
     public static function parseGraphApiErrorMessage(BadResponseException $e): string
     {
-        $respBody = $e->getResponse()->getBody()->getContents();
+        $r = $e->getResponse();
+
+        if($r === null) {
+            return "";
+        }
+
+        $respBody = $r->getBody()->getContents();
 
         $resp = json_decode($respBody, true);
         if($resp === null) {
