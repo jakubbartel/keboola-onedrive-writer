@@ -2,7 +2,9 @@
 
 namespace Keboola\OneDriveWriter\MicrosoftGraphApi\Exception;
 
-class UnsupportedFileType extends MicrosoftGraphApi
+use Exception;
+
+class ReadFile extends Exception
 {
 
 }

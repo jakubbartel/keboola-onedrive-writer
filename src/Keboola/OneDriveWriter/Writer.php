@@ -36,14 +36,12 @@ class Writer
      * @param string $oAuthData serialized data returned by oAuth API
      * @param Flysystem\Filesystem $filesystem
      * @param string|null $sharePointWebUrl
+     * @throws Exception\ApplicationException
+     * @throws Exception\UserException
      * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
      * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
-     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
      * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
-     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
-     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
-     * @throws MicrosoftGraphApi\Exception\MissingSiteId
      */
     public function __construct(
         string $oAuthAppId,
@@ -104,24 +102,38 @@ class Writer
      * @param string $sharePointWebUrl
      * @return Writer
      * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
-     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
      * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
-     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
-     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
-     * @throws MicrosoftGraphApi\Exception\MissingSiteId
+     * @throws Exception\UserException
+     * @throws Exception\ApplicationException
      */
     private function initSharePointId(string $sharePointWebUrl) : self
     {
         $oneDrive = new MicrosoftGraphApi\OneDrive($this->api);
 
-        $this->sharePointSiteId = $oneDrive->readSiteIdByWebUrl($sharePointWebUrl);
+        try {
+            $this->sharePointSiteId = $oneDrive->readSiteIdByWebUrl($sharePointWebUrl);
+        } catch(MicrosoftGraphApi\Exception\InvalidSharePointWebUrl $e) {
+            throw new Exception\UserException(sprintf('SharePoint Site url "%s" is invalid', $sharePointWebUrl));
+        } catch(MicrosoftGraphApi\Exception\ClientException $e) {
+            throw new Exception\UserException(
+                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s: %s',
+                    $sharePointWebUrl, $e->getMessage(), $e->getPrevious()->getMessage())
+            );
+        } catch(MicrosoftGraphApi\Exception\ServerException $e) {
+            throw new Exception\ApplicationException(
+                sprintf('Given url "%s" cannot be loaded as SharePoint site: %s: %s',
+                    $sharePointWebUrl, $e->getMessage(), $e->getPrevious()->getMessage())
+            );
+        } catch(MicrosoftGraphApi\Exception\MissingSiteId $e) {
+            throw new Exception\ApplicationException(
+                sprintf('SharePoint Site "%s" response is missing site id parameter', $sharePointWebUrl)
+            );
+        }
 
         return $this;
     }
 
     /**
-     * Look up all xls(x) and return their path with desired output file.
-     *
      * @param string $dirPath
      * @return array
      */
@@ -144,10 +156,10 @@ class Writer
      * @param string $fileRelPathname
      * @param string $driveDir
      * @return Writer
-     * @throws Exception\UserException
      * @throws Exception\ApplicationException
-     * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
-     * @throws \Exception
+     * @throws Exception\UserException
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
+     * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      */
     public function writeFile(string $dirPath, string $fileRelPathname, string $driveDir) : self
     {
@@ -161,14 +173,18 @@ class Writer
 
         try {
             $files->writeFile($filePathname, $driveFilePathname, $this->sharePointSiteId);
-        } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
-            throw new Exception\UserException('Microsoft OAuth API token refresh failed, please reset Authorization in the writer\'s configuration');
-        } catch(MicrosoftGraphApi\Exception\AccessTokenNotInitialized $e) {
-            throw new Exception\ApplicationException(sprintf("Access token not initialized: %s", $e->getMessage()));
-        } catch(MicrosoftGraphApi\Exception\FileCannotBeLoaded | MicrosoftGraphApi\Exception\InvalidSharingUrl $e) {
-            throw new Exception\UserException($e->getMessage());
-        } catch(MicrosoftGraphApi\Exception\GatewayTimeout $e) {
-            throw new Exception\UserException('Microsoft API timeout, rerun to try again');
+        } catch(MicrosoftGraphApi\Exception\ClientException $e) {
+            throw new Exception\UserException(
+                sprintf('File "%s" upload error: %s: %s',
+                    $filePathname, $e->getMessage(), $e->getPrevious()->getMessage())
+            );
+        } catch(MicrosoftGraphApi\Exception\ServerException $e) {
+            throw new Exception\ApplicationException(
+                sprintf('File "%s" upload error: %s: %s',
+                    $filePathname, $e->getMessage(), $e->getPrevious()->getMessage())
+            );
+        } catch(MicrosoftGraphApi\Exception\ReadFile $e) {
+            throw new Exception\ApplicationException(sprintf('Write file: %s', $e->getMessage()));
         }
 
         printf("File \"%s\" written as \"%s\"\n", $fileRelPathname, $driveFilePathname);
@@ -180,9 +196,10 @@ class Writer
      * @param string $dirPath
      * @param string $driveDir
      * @return Writer
-     * @throws Exception\UserException
      * @throws Exception\ApplicationException
-     * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl
+     * @throws Exception\UserException
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
+     * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      */
     public function writeDir(string $dirPath, string $driveDir) : self
     {

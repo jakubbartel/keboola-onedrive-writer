@@ -19,14 +19,12 @@ class Component extends BaseComponent
     /**
      * @param string $sharePointWebUrl
      * @return Writer
+     * @throws Exception\ApplicationException
+     * @throws Exception\UserException
      * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData
      * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized
-     * @throws MicrosoftGraphApi\Exception\GatewayTimeout
      * @throws MicrosoftGraphApi\Exception\GenerateAccessTokenFailure
      * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure
-     * @throws MicrosoftGraphApi\Exception\InvalidSharePointWebUrl
-     * @throws MicrosoftGraphApi\Exception\InvalidSharingUrl
-     * @throws MicrosoftGraphApi\Exception\MissingSiteId
      */
     public function initWriter(string $sharePointWebUrl): Writer
     {
@@ -43,10 +41,11 @@ class Component extends BaseComponent
     }
 
     /**
-     * @throws MicrosoftGraphApi\Exception\MissingDownloadUrl intentionally treat this as application
-     *         exception so this error is alerted to developer
-     * @throws Exception\UserException
      * @throws Exception\ApplicationException
+     * @throws Exception\UserException
+     * @throws MicrosoftGraphApi\Exception\AccessTokenInvalidData application exception
+     * @throws MicrosoftGraphApi\Exception\AccessTokenNotInitialized application exception
+     * @throws MicrosoftGraphApi\Exception\InitAccessTokenFailure application exception
      */
     public function run() : void
     {
@@ -54,9 +53,15 @@ class Component extends BaseComponent
 
         $sharePointWebUrl = isset($fileParameters['sharePointWebUrl']) ? $fileParameters['sharePointWebUrl'] : '';
 
-        $writer = $this->initWriter($sharePointWebUrl);
-
-        $writer->writeDir(self::getDataDir() . '/in/files', isset($fileParameters['path']) ? $fileParameters['path'] : '');
+        try {
+            $this->initWriter($sharePointWebUrl)->writeDir(
+                self::getDataDir() . '/in/files',
+                isset($fileParameters['path']) ? $fileParameters['path'] : ''
+            );
+        } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
+            throw new Exception\UserException(
+                'Microsoft OAuth API token refresh failed, please reset Authorization in the writer\'s configuration');
+        }
     }
 
 }

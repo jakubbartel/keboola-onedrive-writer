@@ -2,7 +2,9 @@
 
 namespace Keboola\OneDriveWriter\Exception;
 
-class ApplicationException extends \Exception
+use Exception;
+
+class ApplicationException extends Exception
 {
 
 }

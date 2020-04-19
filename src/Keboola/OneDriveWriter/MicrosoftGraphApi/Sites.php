@@ -27,12 +27,12 @@ class Sites
     /**
      * @param string $sharePointWebUrl
      * @return string
+     * @throws Exception\InvalidSharePointWebUrl
      * @throws Exception\AccessTokenNotInitialized
      * @throws Exception\GenerateAccessTokenFailure
-     * @throws Exception\InvalidSharingUrl
-     * @throws Exception\GatewayTimeout
+     * @throws Exception\ClientException
+     * @throws Exception\ServerException
      * @throws Exception\MissingSiteId
-     * @throws Exception\InvalidSharePointWebUrl
      */
     public function getSiteIdBySharePointWebUrl(string $sharePointWebUrl) : string
     {
@@ -47,17 +47,12 @@ class Sites
             $sharePointSite = $this->api->getApi()
                 ->createRequest('GET', sprintf('/sites/%s:%s', $components['host'], $components['path']))
                 ->setReturnType(Model\Site::class)
+                ->setTimeout("15000")
                 ->execute();
-        } catch(GraphException | GuzzleHttp\Exception\ClientException $e) {
-            throw new Exception\InvalidSharingUrl(
-                sprintf('Given url "%s" cannot be loaded as SharePoint site', $sharePointWebUrl)
-            );
-        } catch(GuzzleHttp\Exception\ServerException $e) {
-            if(strpos($e->getMessage(), '504 Gateway Timeout') !== false) {
-                throw new Exception\GatewayTimeout();
-            } else {
-                throw $e;
-            }
+        } catch(GuzzleHttp\Exception\ClientException $e) {
+            throw new Exception\ClientException("Get SharePoint Site request", 0, $e);
+        } catch(GuzzleHttp\Exception\ServerException | GraphException $e) {
+            throw new Exception\ServerException("Get SharePoint Site request", 0, $e);
         }
 
         return Sites::parseSiteId($sharePointSite);
@@ -83,7 +78,8 @@ class Sites
      * @param string $sharePointWebUrl
      * @return array
      */
-    private static function parseSharePointWebUrlComponents(string $sharePointWebUrl) : array {
+    private static function parseSharePointWebUrlComponents(string $sharePointWebUrl) : array
+    {
         if(strpos($sharePointWebUrl, 'https://') === 0) {
             // ok
         } else if(strpos($sharePointWebUrl, 'http://') === 0) {

@@ -2,7 +2,7 @@
 
 namespace Keboola\OneDriveWriter\MicrosoftGraphApi\Exception;
 
-class GatewayTimeout extends MicrosoftGraphApi
+class ClientException extends MicrosoftGraphApi
 {
 
 }
