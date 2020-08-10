@@ -61,6 +61,9 @@ class Component extends BaseComponent
         } catch(MicrosoftGraphApi\Exception\GenerateAccessTokenFailure $e) {
             throw new Exception\UserException(
                 'Microsoft OAuth API token refresh failed, please reset Authorization in the writer\'s configuration');
+        } catch(MicrosoftGraphApi\Exception\AccessTokenInvalidData $e) {
+            throw new Exception\UserException(
+                'Microsoft OAuth API token is invalid, please reset Authorization in the writer\'s configuration');
         }
     }
 
